@@ -1,30 +1,26 @@
-const express = require("express");
-const app = express();
+const { spawn } = require("child_process");
+const log = require("./logger/log.js");
+const express = require("express"); // Express.js ইমপোর্ট করা হয়েছে
 
-const PORT = process.env.PORT || 8080; // Use Render's provided port
+const app = express(); // Express অ্যাপ তৈরি করা হয়েছে
 
-app.get("/", (req, res) => {
-    res.send("Messenger bot is running!");
-});
+function startProject() {
+	const child = spawn("node", ["Goat.js"], {
+		cwd: __dirname,
+		stdio: "inherit",
+		shell: true
+	});
 
-app.get("/webhook", (req, res) => {
-    let VERIFY_TOKEN = "your_verify_token";
+	child.on("close", (code) => {
+		if (code == 2) {
+			log.info("Restarting Project...");
+			startProject();
+		}
+	});
+}
 
-    let mode = req.query["hub.mode"];
-    let token = req.query["hub.verify_token"];
-    let challenge = req.query["hub.challenge"];
+startProject();
 
-    if (mode && token === VERIFY_TOKEN) {
-        res.status(200).send(challenge);
-    } else {
-        res.sendStatus(403);
-    }
-});
-
-// Start the server
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server is running on port ${PORT}`);
-console.log('Rakibs Messenger Bot is Running');
-//Don't change this code or name
-
+app.listen(3000, () => {
+    console.log(`Server is running on http://localhost:3000`);
 });

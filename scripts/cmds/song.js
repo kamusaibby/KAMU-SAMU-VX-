@@ -8,7 +8,7 @@ const onStart = async ({args,api,message,event}) => {
   const data = args.join(' ')
   try {
     const req = await axios.get(`https://www.noobz-api.rf.gd/api/SoundCloudsearch?query=${data}`)
-    api.setMessageReaction("🐢", event.messageID, () => {}, true);
+    api.setMessageReaction("⌛", event.messageID, () => {}, true);
     const item1 = req.data[0];
     const title = item1.title;
     const url = item1.permalink_url;
@@ -19,7 +19,7 @@ const onStart = async ({args,api,message,event}) => {
    \n title:${title}`,
         attachment: await global.utils.getStreamFromUrl(url2),
       });
-      api.setMessageReaction("🪄", event.messageID, () => {}, true);
+      api.setMessageReaction("✅", event.messageID, () => {}, true);
   } catch (e) {
     message.reply(e.message)
   }

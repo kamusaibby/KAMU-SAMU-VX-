@@ -14,7 +14,7 @@ const ora = require("ora");
 const log = require("./logger/log.js");
 const { isHexColor, colors } = require("./func/colors.js");
 const Prism = require("./func/prism.js");
-
+ 
 const { config } = global.GoatBot;
 const { gmailAccount } = config.credentials;
 const { clientId, clientSecret, refreshToken, apiKey: googleApiKey } = gmailAccount;
@@ -30,7 +30,7 @@ if (!refreshToken) {
 	log.err("CREDENTIALS", `Please provide a valid refreshToken in file ${path.normalize(global.client.dirConfig)}`);
 	process.exit();
 }
-
+ 
 const oauth2ClientForGGDrive = new google.auth.OAuth2(clientId, clientSecret, "https://developers.google.com/oauthplayground");
 oauth2ClientForGGDrive.setCredentials({ refresh_token: refreshToken });
 const driveApi = google.drive({
@@ -72,9 +72,9 @@ const word = [
 	'Z', 'z',
 	' '
 ];
-
+ 
 const regCheckURL = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
-
+ 
 class CustomError extends Error {
 	constructor(obj) {
 		if (typeof obj === 'string')
@@ -85,7 +85,7 @@ class CustomError extends Error {
 		Object.assign(this, obj);
 	}
 }
-
+ 
 function lengthWhiteSpacesEndLine(text) {
 	let length = 0;
 	for (let i = text.length - 1; i >= 0; i--) {
@@ -96,7 +96,7 @@ function lengthWhiteSpacesEndLine(text) {
 	}
 	return length;
 }
-
+ 
 function lengthWhiteSpacesStartLine(text) {
 	let length = 0;
 	for (let i = 0; i < text.length; i++) {
@@ -107,14 +107,14 @@ function lengthWhiteSpacesStartLine(text) {
 	}
 	return length;
 }
-
+ 
 function setErrorUptime() {
 	global.statusAccountBot = 'block spam';
 	global.responseUptimeCurrent = global.responseUptimeError;
 }
 const defaultStderrClearLine = process.stderr.clearLine;
-
-
+ 
+ 
 function convertTime(miliSeconds, replaceSeconds = "s", replaceMinutes = "m", replaceHours = "h", replaceDays = "d", replaceMonths = "M", replaceYears = "y", notShowZero = false) {
 	if (typeof replaceSeconds == 'boolean') {
 		notShowZero = replaceSeconds;
@@ -127,7 +127,7 @@ function convertTime(miliSeconds, replaceSeconds = "s", replaceMinutes = "m", re
 	const month = Math.floor(miliSeconds / 1000 / 60 / 60 / 24 / 30 % 12);
 	const year = Math.floor(miliSeconds / 1000 / 60 / 60 / 24 / 30 / 12);
 	let formattedDate = '';
-
+ 
 	const dateParts = [
 		{ value: year, replace: replaceYears },
 		{ value: month, replace: replaceMonths },
@@ -136,7 +136,7 @@ function convertTime(miliSeconds, replaceSeconds = "s", replaceMinutes = "m", re
 		{ value: minute, replace: replaceMinutes },
 		{ value: second, replace: replaceSeconds }
 	];
-
+ 
 	for (let i = 0; i < dateParts.length; i++) {
 		const datePart = dateParts[i];
 		if (datePart.value)
@@ -146,16 +146,16 @@ function convertTime(miliSeconds, replaceSeconds = "s", replaceMinutes = "m", re
 		else if (i == dateParts.length - 1)
 			formattedDate += '0' + datePart.replace;
 	}
-
+ 
 	if (formattedDate == '')
 		formattedDate = '0' + replaceSeconds;
-
+ 
 	if (notShowZero)
 		formattedDate = formattedDate.replace(/00\w+/g, '');
-
+ 
 	return formattedDate;
 }
-
+ 
 function createOraDots(text) {
 	const spin = new ora({
 		text: text,
@@ -179,7 +179,7 @@ function createOraDots(text) {
 	};
 	return spin;
 }
-
+ 
 class TaskQueue {
 	constructor(callback) {
 		this.queue = [];
@@ -206,20 +206,20 @@ class TaskQueue {
 		return this.queue.length;
 	}
 }
-
+ 
 function enableStderrClearLine(isEnable = true) {
 	process.stderr.clearLine = isEnable ? defaultStderrClearLine : () => { };
 }
-
+ 
 function formatNumber(number) {
 	const regionCode = global.GoatBot.config.language;
 	if (isNaN(number))
 		throw new Error('The first argument (number) must be a number');
-
+ 
 	number = Number(number);
 	return number.toLocaleString(regionCode || "en-US");
 }
-
+ 
 function getExtFromAttachmentType(type) {
 	switch (type) {
 		case "photo":
@@ -234,11 +234,11 @@ function getExtFromAttachmentType(type) {
 			return "txt";
 	}
 }
-
+ 
 function getExtFromMimeType(mimeType = "") {
 	return mimeDB[mimeType] ? (mimeDB[mimeType].extensions || [])[0] || "unknow" : "unknow";
 }
-
+ 
 function getExtFromUrl(url = "") {
 	if (!url || typeof url !== "string")
 		throw new Error('The first argument (url) must be a string');
@@ -246,18 +246,33 @@ function getExtFromUrl(url = "") {
 	const fileName = url.match(reg)[0].slice(0, -1);
 	return fileName.slice(fileName.lastIndexOf(".") + 1);
 }
-
+ 
 function getPrefix(threadID) {
-	if (!threadID || isNaN(threadID))
-		throw new Error('The first argument (threadID) must be a number');
-	threadID = String(threadID);
-	let prefix = global.GoatBot.config.prefix;
-	const threadData = global.db.allThreadData.find(t => t.threadID == threadID);
-	if (threadData)
-		prefix = threadData.data.prefix || prefix;
-	return prefix;
+  if (!threadID || isNaN(threadID)) 
+    throw new Error('The first argument (threadID) must be a number');
+ 
+  threadID = String(threadID);
+ 
+  // Default prefix from config
+  let prefix = global.GoatBot.config.prefix;
+ 
+  // Get thread-specific data
+  const threadData = global.db.allThreadData.find(t => t.threadID == threadID);
+ 
+  if (threadData) {
+    // If noPrefixMode is true, return an empty string
+    if (threadData.data?.noPrefixMode === true) return "";
+    // Otherwise, check for a custom prefix
+    prefix = threadData.data?.prefix || prefix;
+  }
+ 
+  return prefix;
 }
-
+ 
+module.exports = {
+  getPrefix
+}
+ 
 function getTime(timestamps, format) {
 	// check if just have timestamps -> format = timestamps
 	if (!format && typeof timestamps == 'string') {
@@ -266,7 +281,7 @@ function getTime(timestamps, format) {
 	}
 	return moment(timestamps).tz(config.timeZone).format(format);
 }
-
+ 
 /**
  * @param {any} value
  * @returns {("Null" | "Undefined" | "Boolean" | "Number" | "String" | "Symbol" | "Object" | "Function" | "AsyncFunction" | "Array" | "Date" | "RegExp" | "Error" | "Map" | "Set" | "WeakMap" | "WeakSet" | "Int8Array" | "Uint8Array" | "Uint8ClampedArray" | "Int16Array" | "Uint16Array" | "Int32Array" | "Uint32Array" | "Float32Array" | "Float64Array" | "BigInt" | "BigInt64Array" | "BigUint64Array")}
@@ -274,17 +289,17 @@ function getTime(timestamps, format) {
 function getType(value) {
 	return Object.prototype.toString.call(value).slice(8, -1);
 }
-
+ 
 function isNumber(value) {
 	return !isNaN(parseFloat(value));
 }
-
+ 
 function jsonStringifyColor(obj, filter, indent, level) {
 	// source: https://www.npmjs.com/package/node-json-color-stringify
 	indent = indent || 0;
 	level = level || 0;
 	let output = '';
-
+ 
 	if (typeof obj === 'string')
 		output += colors.green(`"${obj}"`);
 	else if (typeof obj === 'number' || typeof obj === 'boolean' || obj === null)
@@ -299,7 +314,7 @@ function jsonStringifyColor(obj, filter, indent, level) {
 				output += colors.gray('{\n');
 				Object.keys(obj).forEach(key => {
 					let value = obj[key];
-
+ 
 					if (filter) {
 						if (typeof filter === 'function')
 							value = filter(key, value);
@@ -307,16 +322,16 @@ function jsonStringifyColor(obj, filter, indent, level) {
 							if (filter.indexOf(key) < 0)
 								return;
 					}
-
+ 
 					// if (value === undefined)
 					// 	return;
 					if (!isNaN(key[0]) || key.match(/[^a-zA-Z0-9_]/))
 						key = colors.green(JSON.stringify(key));
-
+ 
 					output += ' '.repeat(indent + level * indent) + `${key}:${indent ? ' ' : ''}`;
 					output += utils.jsonStringifyColor(value, filter, indent, level + 1) + ',\n';
 				});
-
+ 
 				output = output.replace(/,\n$/, '\n');
 				output += ' '.repeat(level * indent) + colors.gray('}');
 			}
@@ -329,22 +344,22 @@ function jsonStringifyColor(obj, filter, indent, level) {
 				obj.forEach(subObj => {
 					output += ' '.repeat(indent + level * indent) + utils.jsonStringifyColor(subObj, filter, indent, level + 1) + ',\n';
 				});
-
+ 
 				output = output.replace(/,\n$/, '\n');
 				output += ' '.repeat(level * indent) + colors.gray(']');
 			}
 		}
 	else if (typeof obj === 'function')
 		output += colors.green(obj.toString());
-
+ 
 	output = output.replace(/,$/gm, colors.gray(','));
 	if (indent === 0)
 		return output.replace(/\n/g, '');
-
+ 
 	return output;
 }
-
-
+ 
+ 
 function message(api, event) {
 	async function sendMessageError(err) {
 		if (typeof err === "object" && !err.stack)
@@ -395,7 +410,7 @@ function message(api, event) {
 		error: async (err) => await sendMessageError(err)
 	};
 }
-
+ 
 function randomString(max, onlyOnce = false, possible) {
 	if (!max || isNaN(max))
 		max = 10;
@@ -411,7 +426,7 @@ function randomString(max, onlyOnce = false, possible) {
 	}
 	return text;
 }
-
+ 
 function randomNumber(min, max) {
 	if (!max) {
 		max = min;
@@ -423,7 +438,7 @@ function randomNumber(min, max) {
 		throw new Error('The second argument (max) must be a number');
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
+ 
 function removeHomeDir(fullPath) {
 	if (!fullPath || typeof fullPath !== "string")
 		throw new Error('The first argument (fullPath) must be a string');
@@ -431,7 +446,7 @@ function removeHomeDir(fullPath) {
 		fullPath = fullPath.replace(process.cwd(), "");
 	return fullPath;
 }
-
+ 
 function splitPage(arr, limit) {
 	const allPage = _.chunk(arr, limit);
 	return {
@@ -439,7 +454,7 @@ function splitPage(arr, limit) {
 		allPage
 	};
 }
-
+ 
 async function translateAPI(text, lang) {
 	try {
 		const res = await axios.get(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${lang}&dt=t&q=${encodeURIComponent(text)}`);
@@ -449,7 +464,7 @@ async function translateAPI(text, lang) {
 		throw new CustomError(err.response ? err.response.data : err);
 	}
 }
-
+ 
 async function downloadFile(url = "", path = "") {
 	if (!url || typeof url !== "string")
 		throw new Error(`The first argument (url) must be a string`);
@@ -467,7 +482,7 @@ async function downloadFile(url = "", path = "") {
 	fs.writeFileSync(path, Buffer.from(getFile.data));
 	return path;
 }
-
+ 
 async function findUid(link) {
 	try {
 		const response = await axios.post(
@@ -500,7 +515,7 @@ async function findUid(link) {
 		throw new Error('An unexpected error occurred. Please try again.');
 	}
 }
-
+ 
 async function getStreamsFromAttachment(attachments) {
 	const streams = [];
 	for (const attachment of attachments) {
@@ -523,7 +538,7 @@ async function getStreamsFromAttachment(attachments) {
 	}
 	return streams;
 }
-
+ 
 async function getStreamFromURL(url = "", pathName = "", options = {}) {
 	if (!options && typeof pathName === "object") {
 		options = pathName;
@@ -547,7 +562,7 @@ async function getStreamFromURL(url = "", pathName = "", options = {}) {
 		throw err;
 	}
 }
-
+ 
 async function translate(text, lang) {
 	if (typeof text !== "string")
 		throw new Error(`The first argument (text) must be a string`);
@@ -559,12 +574,12 @@ async function translate(text, lang) {
 	const wordNoTranslate = [''];
 	const wordTransAfter = [];
 	let lastPosition = 'wordTranslate';
-
+ 
 	if (word.indexOf(text.charAt(0)) == -1)
 		wordTranslate.push('');
 	else
 		wordNoTranslate.splice(0, 1);
-
+ 
 	for (let i = 0; i < text.length; i++) {
 		const char = text[i];
 		if (word.indexOf(char) !== -1) { // is word
@@ -599,7 +614,7 @@ async function translate(text, lang) {
 			}
 		}
 	}
-
+ 
 	for (let i = 0; i < wordTranslate.length; i++) {
 		const text = wordTranslate[i];
 		if (!text.match(/[^\s]+/))
@@ -607,9 +622,9 @@ async function translate(text, lang) {
 		else
 			wordTransAfter.push(utils.translateAPI(text, lang));
 	}
-
+ 
 	let output = '';
-
+ 
 	for (let i = 0; i < wordTransAfter.length; i++) {
 		let wordTrans = (await wordTransAfter[i]);
 		if (wordTrans.trim().length === 0) {
@@ -618,20 +633,20 @@ async function translate(text, lang) {
 				output += wordNoTranslate[i];
 			continue;
 		}
-
+ 
 		wordTrans = wordTrans.trim();
 		const numberStartSpace = lengthWhiteSpacesStartLine(wordTranslate[i]);
 		const numberEndSpace = lengthWhiteSpacesEndLine(wordTranslate[i]);
-
+ 
 		wordTrans = ' '.repeat(numberStartSpace) + wordTrans.trim() + ' '.repeat(numberEndSpace);
-
+ 
 		output += wordTrans;
 		if (wordNoTranslate[i] != undefined)
 			output += wordNoTranslate[i];
 	}
 	return output;
 }
-
+ 
 async function shortenURL(url) {
 	try {
 		const result = await axios.get(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
@@ -647,7 +662,7 @@ async function shortenURL(url) {
 			error = new Error(err.message);
 	}
 }
-
+ 
 async function uploadImgbb(file /* stream or image url */) {
 	let type = "file";
 	try {
@@ -660,15 +675,15 @@ async function uploadImgbb(file /* stream or image url */) {
 			|| (type == "url" && !regCheckURL.test(file))
 		)
 			throw new Error('The first argument (file) must be a stream or an image URL');
-
+ 
 		const res_ = await axios({
 			method: 'GET',
 			url: 'https://imgbb.com'
 		});
-
+ 
 		const auth_token = res_.data.match(/auth_token="([^"]+)"/)[1];
 		const timestamp = Date.now();
-
+ 
 		const res = await axios({
 			method: 'POST',
 			url: 'https://imgbb.com/json',
@@ -683,7 +698,7 @@ async function uploadImgbb(file /* stream or image url */) {
 				auth_token: auth_token
 			}
 		});
-
+ 
 		return res.data;
 		// {
 		// 	"status_code": 200,
@@ -760,7 +775,7 @@ async function uploadImgbb(file /* stream or image url */) {
 		throw new CustomError(err.response ? err.response.data : err);
 	}
 }
-
+ 
 async function uploadZippyshare(stream) {
 	const res = await axios({
 		method: 'POST',
@@ -773,7 +788,7 @@ async function uploadZippyshare(stream) {
 			file: stream
 		}
 	});
-
+ 
 	const fullUrl = res.data.data.file.url.full;
 	const res_ = await axios({
 		method: 'GET',
@@ -783,13 +798,13 @@ async function uploadZippyshare(stream) {
 			"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.43"
 		}
 	});
-
+ 
 	const downloadUrl = res_.data.match(/id="download-url"(?:.|\n)*?href="(.+?)"/)[1];
 	res.data.data.file.url.download = downloadUrl;
-
+ 
 	return res.data;
 }
-
+ 
 const drive = {
 	default: driveApi,
 	parentID: "",
@@ -818,7 +833,7 @@ const drive = {
 		await utils.drive.makePublic(response.id);
 		return response;
 	},
-
+ 
 	async deleteFile(id) {
 		if (!id || typeof id !== "string")
 			throw new Error('The first argument (id) must be a string');
@@ -832,13 +847,13 @@ const drive = {
 			throw new Error(err.errors.map(e => e.message).join("\n"));
 		}
 	},
-
+ 
 	getUrlDownload(id = "") {
 		if (!id || typeof id !== "string")
 			throw new Error('The first argument (id) must be a string');
 		return `https://docs.google.com/uc?id=${id}&export=download&confirm=t${googleApiKey ? `&key=${googleApiKey}` : ''}`;
 	},
-
+ 
 	async getFile(id, responseType) {
 		if (!id || typeof id !== "string")
 			throw new Error('The first argument (id) must be a string');
@@ -846,7 +861,7 @@ const drive = {
 			responseType = "arraybuffer";
 		if (typeof responseType !== "string")
 			throw new Error('The second argument (responseType) must be a string');
-
+ 
 		const response = await driveApi.files.get({
 			fileId: id,
 			alt: 'media'
@@ -855,17 +870,17 @@ const drive = {
 		});
 		const headersResponse = response.headers;
 		const fileName = headersResponse["content-disposition"]?.split('filename="')[1]?.split('"')[0] || `${utils.randomString(10)}.${utils.getExtFromMimeType(headersResponse["content-type"])}`;
-
+ 
 		if (responseType == "arraybuffer")
 			return Buffer.from(response.data);
 		else if (responseType == "stream")
 			response.data.path = fileName;
-
+ 
 		const file = response.data;
-
+ 
 		return file;
 	},
-
+ 
 	async getFileName(id) {
 		if (!id || typeof id !== "string")
 			throw new Error('The first argument (id) must be a string');
@@ -884,7 +899,7 @@ const drive = {
 			throw new Error(err.errors.map(e => e.message).join("\n"));
 		}
 	},
-
+ 
 	async makePublic(id) {
 		if (!id || typeof id !== "string")
 			throw new Error('The first argument (id) must be a string');
@@ -904,7 +919,7 @@ const drive = {
 			throw new Error(err.errors.map(e => e.message).join("\n"));
 		}
 	},
-
+ 
 	async checkAndCreateParentFolder(folderName) {
 		if (!folderName || typeof folderName !== "string")
 			throw new Error('The first argument (folderName) must be a string');
@@ -945,7 +960,7 @@ const drive = {
 		return parentID;
 	}
 };
-
+ 
 class GoatBotApis {
 	constructor(apiKey) {
 		this.apiKey = apiKey;
@@ -956,7 +971,7 @@ class GoatBotApis {
 				"x-api-key": apiKey
 			}
 		});
-
+ 
 		// modify axios response
 		this.api.interceptors.response.use((response) => {
 			return {
@@ -970,7 +985,7 @@ class GoatBotApis {
 				data: response.data
 			};
 		});
-
+ 
 		// modify axios response error
 		this.api.interceptors.response.use(undefined, async (error) => {
 			let responseDataError;
@@ -995,7 +1010,7 @@ class GoatBotApis {
 					resolveFunc();
 				}
 			});
-
+ 
 			await promise();
 			try {
 				responseDataError = JSON.parse(responseDataError);
@@ -1013,25 +1028,25 @@ class GoatBotApis {
 			});
 		});
 	}
-
+ 
 	isSetApiKey() {
 		return this.apiKey && typeof this.apiKey === "string";
 	}
-
+ 
 	getApiKey() {
 		return this.apiKey;
 	}
-
+ 
 	async getAccountInfo() {
 		const { data } = await this.api.get("/info");
 		return data;
 	}
 }
-
+ 
 const utils = {
 	CustomError,
 	TaskQueue,
-
+ 
 	colors,
 	convertTime,
 	createOraDots,
@@ -1069,8 +1084,8 @@ const utils = {
 	uploadZippyshare,
 	uploadImgbb,
 	drive,
-
+ 
 	GoatBotApis
 };
-
+ 
 module.exports = utils;

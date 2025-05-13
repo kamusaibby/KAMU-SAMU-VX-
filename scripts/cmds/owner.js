@@ -13,7 +13,7 @@ module.exports = {
   },
 
   onStart: async function ({ api, event, args, message, usersData }) {
-    const imgURL = "http://remakeai-production.up.railway.app/Remake_Ai/Nyx_Remake_1746868417436.mp4";
+    const imgURL = "http://remakeai-production.up.railway.app/Remake_Ai/Nyx_Remake_1747110169967.mp4";
     const attachment = await global.utils.getStreamFromURL(imgURL);
 
     const id = event.senderID;

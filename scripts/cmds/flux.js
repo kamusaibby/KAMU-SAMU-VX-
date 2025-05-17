@@ -1,44 +1,46 @@
 const axios = require("axios");
 
-const baseApiUrl = async () => {
-  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/exe/main/baseApiUrl.json");
-  return base.data.mahmud;
+module.exports.config = {
+  name: "flux",
+  version: "2.0",
+  role: 0,
+  author: "Dipto",
+  description: "Flux Image Generator",
+  category: "𝗜𝗠𝗔𝗚𝗘 𝗚𝗘𝗡𝗘𝗥𝗔𝗧𝗢𝗥",
+  premium: true,
+  guide: "{pn} [prompt] --ratio 1024x1024\n{pn} [prompt]",
+  countDown: 15,
 };
 
-module.exports = {
-  config: {
-    name: "flux",
-    version: "1.7",
-    author: "MahMUD",
-    countDown: 10,
-    role: 0,
-    category: "Image gen",
-    guide: "{pn} [prompt]"
-  },
+module.exports.onStart = async ({ event, args, api }) => {
+  const dipto = "https://www.noobs-api.rf.gd/dipto";
 
-  onStart: async function ({ api, event, args }) {
+  try {
     const prompt = args.join(" ");
-    if (!prompt) return api.sendMessage("Please provide a prompt to generate an image.", event.threadID, event.messageID);
+    const [prompt2, ratio = "1:1"] = prompt.includes("--ratio")
+      ? prompt.split("--ratio").map(s => s.trim())
+      : [prompt, "1:1"];
 
-    try {
-      const apiUrl = await baseApiUrl();
-      if (!apiUrl) return api.sendMessage("Base API URL could not be loaded.", event.threadID, event.messageID);
+    const startTime = Date.now();
+    
+    const waitMessage = await api.sendMessage("Generating image please wait !! ", event.threadID);
+    api.setMessageReaction("⌛", event.messageID, () => {}, true);
 
-      const res = await axios.post(`${apiUrl}/api/fluxpro`, { prompt });
+    const apiurl = `${dipto}/flux?prompt=${encodeURIComponent(prompt2)}&ratio=${encodeURIComponent(ratio)}`;
+    const response = await axios.get(apiurl, { responseType: "stream" });
 
-      if (!res.data?.imageUrl) return api.sendMessage("Failed to generate image.", event.threadID, event.messageID);
+    const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
 
-      const imageStream = await global.utils.getStreamFromURL(res.data.imageUrl);
+    api.setMessageReaction("✅", event.messageID, () => {}, true);
+    api.unsendMessage(waitMessage.messageID);
 
-      const message = await api.sendMessage({
-        body: "✅ Here is your generated image",
-        attachment: imageStream
-      }, event.threadID, event.messageID);
-
-      api.setMessageReaction("🪽", message.messageID, () => {}, true);
-
-    } catch (err) {
-      return api.sendMessage("An error occurred while generating the image.", event.threadID, event.messageID);
-    }
+    api.sendMessage({
+      body: `Here's your image (Generated in ${timeTaken} seconds)`,
+      attachment: response.data,
+    }, event.threadID, event.messageID);
+    
+  } catch (e) {
+    console.error(e);
+    api.sendMessage("Error: " + e.message, event.threadID, event.messageID);
   }
 };

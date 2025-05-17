@@ -1,9 +1,10 @@
-fs = require("fs-extra");
+const fs = require("fs-extra");
 const axios = require("axios");
 const path = require("path");
 const { getPrefix } = global.utils;
 const { commands, aliases } = global.GoatBot;
-const doNotDelete = "[ 𝐓𝐎𝐌 ]"; 
+const doNotDelete = "[ 𝐓𝐎𝐌 ]";
+
 module.exports = {
   config: {
     name: "help",
@@ -23,6 +24,7 @@ module.exports = {
     },
     priority: 1,
   },
+
   onStart: async function ({ message, args, event, threadsData, role }) {
     const { threadID } = event;
     const threadData = await threadsData.get(threadID);
@@ -30,7 +32,7 @@ module.exports = {
     if (args.length === 0) {
       const categories = {};
       let msg = "╭───────❁";
-      msg += `\n│𝐁𝐚𝐛𝐲 𝐇𝐞𝐥𝐩 𝐋𝐢𝐬𝐭 \n╰────────────❁`; 
+      msg += `\n│𝐁𝐚𝐛𝐲 𝐇𝐞𝐥𝐩 𝐋𝐢𝐬𝐭 \n╰────────────❁`;
       for (const [name, value] of commands) {
         if (value.config.role > 1 && role < value.config.role) continue;
         const category = value.config.category || "Uncategorized";
@@ -51,25 +53,33 @@ module.exports = {
       const totalCommands = commands.size;
       msg += `\n\n╭─────✰[𝗕𝗔'𝗕𝗬 くめ]\n│>𝐓𝐨𝐭𝐚𝐥 𝐂𝐦𝐝𝐬: [${totalCommands}].\n╰────────────✰`;
       msg += ``;
-      msg += `\n╭─────✰\n│ ╣[卡姆鲁尔]╠\n╰────────────✰`; 
-const helpListImages = [ "http://remakeai-production.up.railway.app/Remake_Ai/Nyx_Remake_1745512372548.gif" ];
-      const helpListImage = helpListImages[Math.floor(Math.random() * helpListImages.length)];
+      msg += `\n╭─────✰\n│ ╣[卡姆鲁尔]╠\n╰────────────✰`;
+      const helpListImages = [
+        "http://remakeai-production.up.railway.app/Remake_Ai/Nyx_Remake_1745512372548.gif",
+      ];
+      const helpListImage =
+        helpListImages[Math.floor(Math.random() * helpListImages.length)];
       await message.reply({
         body: msg,
-        attachment: await global.utils.getStreamFromURL(helpListImage)
+        attachment: await global.utils.getStreamFromURL(helpListImage),
       });
     } else {
       const commandName = args[0].toLowerCase();
-      const command = commands.get(commandName) || commands.get(aliases.get(commandName));
+      const command =
+        commands.get(commandName) || commands.get(aliases.get(commandName));
       if (!command) {
         await message.reply(`Command "${commandName}" not found.`);
       } else {
         const configCommand = command.config;
         const roleText = roleTextToString(configCommand.role);
         const author = configCommand.author || "Unknown";
-        const longDescription = configCommand.longDescription ? configCommand.longDescription.en || "No description" : "No description";
+        const longDescription = configCommand.longDescription
+          ? configCommand.longDescription.en || "No description"
+          : "No description";
         const guideBody = configCommand.guide?.en || "No guide available.";
-        const usage = guideBody.replace(/{p}/g, prefix).replace(/{n}/g, configCommand.name);
+        const usage = guideBody
+          .replace(/{p}/g, prefix)
+          .replace(/{n}/g, configCommand.name);
         const response = `
   ╭───⊙
   │ 🔶 ${configCommand.name}
@@ -85,7 +95,34 @@ const helpListImages = [ "http://remakeai-production.up.railway.app/Remake_Ai/Ny
       }
     }
   },
+
+  onChat: async function ({ message, event, threadsData, usersData }) {
+    const body = (event.body || "").toLowerCase().trim();
+    const prefix = global.GoatBot.config.prefix;
+
+    // Triggers that support prefix and no prefix
+    const triggers = ["help", `${prefix}help`];
+
+    if (!triggers.some((cmd) => body.startsWith(cmd))) return;
+
+    // Remove the command word ("help" or "!help") and split the rest as args
+    let args = body.split(/\s+/);
+    if (args[0].startsWith(prefix)) {
+      args[0] = args[0].slice(prefix.length);
+    }
+    args = args.slice(1);
+
+    await module.exports.onStart({
+      message,
+      event,
+      args,
+      threadsData,
+      usersData,
+      role: 0, // default role, change if you want
+    });
+  },
 };
+
 function roleTextToString(roleText) {
   switch (roleText) {
     case 0:

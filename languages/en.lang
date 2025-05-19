@@ -152,3 +152,5 @@ app.notPermissionChangeFbstate=You do not have permission to change fbstate!
 app.notFoundFbstate=Please enter fbstate!
 app.changedFbstateSuccess=Successfully changed fbstate!
 app.serverError=Server an error, please try again later!
+pSuccess=Successfully backed up changed files, see in the %1 folder
+updater.restartToApply=. Restart the bot to apply 

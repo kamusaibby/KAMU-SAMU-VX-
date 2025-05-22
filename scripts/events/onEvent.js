@@ -5,15 +5,19 @@ module.exports = {
 		name: "onEvent",
 		version: "1.1",
 		author: "NTKhang",
-		description: "Loop to all event in global.GoatBot.onEvent and run when have new event",
+		description: "Handle all bot events globally (works in both group and inbox)",
 		category: "events"
 	},
 
-	onStart: async ({ api, args, message, event, threadsData, usersData, dashBoardData, threadModel, userModel, dashBoardModel, role, commandName }) => {
+	onStart: async (props) => {
 		for (const item of allOnEvent) {
-			if (typeof item === "string")
-				continue; // Skip if item is string, because it is the command name and is executed at ../../bot/handler/handlerEvents.js
-			item.onStart({ api, args, message, event, threadsData, usersData, threadModel, dashBoardData, userModel, dashBoardModel, role, commandName });
+			if (typeof item === "string") continue;
+
+			try {
+				await item.onStart(props);
+			} catch (err) {
+				console.error(`Error in onEvent handler "${item.config?.name || 'unknown'}":`, err);
+			}
 		}
 	}
 };

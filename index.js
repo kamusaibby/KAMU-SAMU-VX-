@@ -1,9 +1,24 @@
+/**
+ * Goat Bot Render Deployment Fix by Eren
+ */
+
+const express = require("express");
 const { spawn } = require("child_process");
 const log = require("./logger/log.js");
-const express = require("express"); // Express.js ইমপোর্ট করা হয়েছে
 
-const app = express(); // Express অ্যাপ তৈরি করা হয়েছে
+// === Express server to keep Render service alive ===
+const app = express();
+const PORT = process.env.PORT || 3000;
 
+app.get("/", (req, res) => {
+	res.send("Goat Bot is alive and running on Render!");
+});
+
+app.listen(PORT, () => {
+	console.log(`✅ Server running at http://localhost:${PORT}`);
+});
+
+// === Start the Goat bot process ===
 function startProject() {
 	const child = spawn("node", ["Goat.js"], {
 		cwd: __dirname,
@@ -12,7 +27,7 @@ function startProject() {
 	});
 
 	child.on("close", (code) => {
-		if (code == 2) {
+		if (code === 2) {
 			log.info("Restarting Project...");
 			startProject();
 		}
@@ -20,7 +35,3 @@ function startProject() {
 }
 
 startProject();
-
-app.listen(3000, () => {
-    console.log(`Server is running on http://localhost:3000`);
-});

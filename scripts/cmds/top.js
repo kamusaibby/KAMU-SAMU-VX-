@@ -1,46 +1,64 @@
 module.exports = {
-  config: {
-    name: "top",
-    version: "1.4",
-    author: "SAIF x gpt🤡",
-    role: 0,
-    shortDescription: {
-      en: "Top 15 Rich Users"
-    },
-    longDescription: {
-      en: ""
-    },
-    category: "group",
-    guide: {
-      en: "{pn}"
-    }
-  },
-  onStart: async function ({ api, args, message, event, usersData }) {
-    const allUsers = await usersData.getAll();
-    
-    // Sort users by money and take top 15
-    const topUsers = allUsers.sort((a, b) => b.money - a.money).slice(0, 15);
+  config: {
+    name: "top",
+    aliases: ["tp"],
+    version: "1.1",
+    author: "𝐓𝐎𝐌 × GPT 🦆💨",
+    role: 0,
+    shortDescription: {
+      en: "Top 10 Rich Users"
+    },
+    longDescription: {
+      en: "Displays the top 10 richest users with their name, UID, and money"
+    },
+    category: "group",
+    guide: {
+      en: "{pn}"
+    }
+  },
 
-    // Function to format numbers correctly
-    function formatNumber(num) {
-      if (num >= 1e15) return (num / 1e15).toFixed(2) + "Q"; // Quadrillion
-      if (num >= 1e12) return (num / 1e12).toFixed(2) + "T"; // Trillion
-      if (num >= 1e9) return (num / 1e9).toFixed(2) + "B"; // Billion
-      if (num >= 1e6) return (num / 1e6).toFixed(2) + "M"; // Million
-      if (num >= 1e3) return (num / 1e3).toFixed(2) + "K"; // Thousand
-      return num.toString(); // যদি 1K-এর নিচে হয়, তাহলে নরমাল দেখাবে
-    }
+  onStart: async function ({ api, args, message, event, usersData }) {
+    return await this.runTopCommand({ api, message, event, usersData });
+  },
 
-    // Create leaderboard list
-    const topUsersList = topUsers.map((user, index) => {
-      const moneyFormatted = formatNumber(user.money || 0); // যদি টাকা না থাকে তাহলে "0" দেখাবে
-      const medals = ["🥇", "🥈", "🥉"];
-      return `${medals[index] || `${index + 1}.`} ${user.name} - ${moneyFormatted}`;
-    });
+  onChat: async function ({ api, message, event, usersData }) {
+    const prefix = global.GoatBot.config.prefix;
+    const body = (event.body || "").toLowerCase().trim();
+    const triggers = [
+      "top", "tp", 
+      `${prefix}top`, `${prefix}tp`
+    ];
 
-    // Shortened header and compact design
-    const messageText = `👑 𝗧𝗢𝗣 𝗥𝗜𝗖𝗛𝗘𝗦𝗧 𝗨𝗦𝗘𝗥𝗦 👑\n━━━━━━━━━━━\n${topUsersList.join("\n")}`;
+    if (!triggers.includes(body)) return;
+    return await this.runTopCommand({ api, message, event, usersData });
+  },
 
-    message.reply(messageText);
-  }
+  runTopCommand: async function ({ api, message, event, usersData }) {
+    function formatMoney(amount) {
+      if (amount >= 1e9) return `${(amount / 1e9).toFixed(2)} B💵`;
+      if (amount >= 1e6) return `${(amount / 1e6).toFixed(2)} M💵`;
+      if (amount >= 1e3) return `${(amount / 1e3).toFixed(2)} K💵`;
+      return `${amount} 💵`;
+    }
+
+    const allUsers = await usersData.getAll();
+    const topUsers = allUsers
+      .sort((a, b) => b.money - a.money)
+      .slice(0, 10); // Now only Top 10
+
+    const topUsersList = topUsers.map((user, index) =>
+      `${index + 1}. 🏅 Name: ${user.name}\n   🆔 UID: ${user.userID}\n   💰 Balance: ${formatMoney(user.money)}`
+    );
+
+    const messageText = `👀 𝐁𝐚𝐛𝐲 𝐓𝐨𝐩 𝟏𝟎 𝐮𝐬𝐞𝐫𝐬 𝐥𝐢𝐬𝐭  🐣\n\n${topUsersList.join('\n\n')}\n\n𝐊𝐞𝐞𝐩 𝐞𝐚𝐫𝐧𝐢𝐧𝐠 𝐚𝐧𝐝 𝐜𝐥𝐢𝐦𝐛 𝐭𝐨 𝐭𝐡𝐞 𝐭𝐨𝐩 !! `;
+
+    const loadingMessage = await message.reply("🔎 𝐒𝐞𝐚𝐫𝐜𝐡𝐢𝐧𝐠 𝐟𝐨𝐫 𝐭𝐡𝐞 𝐫𝐢𝐜𝐡𝐞𝐬𝐭. 𝐏𝐥𝐞𝐚𝐬𝐞 𝐰𝐚𝐢𝐭 !!");
+
+    setTimeout(() => {
+      api.unsendMessage(loadingMessage.messageID, (err) => {
+        if (err) console.error("Failed to unsend loading message:", err);
+        else message.reply(messageText);
+      });
+    }, 2000);
+  }
 };

@@ -40,7 +40,7 @@ const onChat = async ({ api, event }) => {
   if (!supportedSites.some(site => body.startsWith(site))) return;
 
   const startTime = Date.now();
-  const waitMsg = await api.sendMessage("𝐒𝐢𝐫 𝐩𝐥𝐳 𝐰𝟖 𝐚𝐦𝐢\ 𝐝𝐰𝐧 𝐤𝐨𝐫𝐞 𝐝𝐢𝐜𝐜𝐡𝐢 ⏳", event.threadID);
+  const waitMsg = await api.sendMessage("𝐒𝐢𝐫 𝐩𝐥𝐳 𝐰𝟖 𝐚𝐦𝐢\ 𝐝𝐰𝐧 𝐤𝐨𝐫𝐞 𝐝𝐢𝐜𝐜𝐡𝐢 !!", event.threadID);
 
   try {
     const apiUrl = `${await baseApiUrl()}/alldl?url=${encodeURIComponent(body)}`;
